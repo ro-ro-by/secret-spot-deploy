@@ -1,4 +1,4 @@
-name: build
+name: Tiles deploy
 run-name: ${{ github.actor }} is deploying tiles
 on:
   workflow_dispatch:
