@@ -29,7 +29,7 @@ jobs:
           path: data/kb
       - name: Run containers
         run: |
-          cp builder/docker-compose.yaml docker-compose.yaml
+          cp builder/tiles-deploy/docker-compose.yaml docker-compose.yaml
           docker compose up -d
 
       #####
