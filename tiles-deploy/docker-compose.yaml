@@ -1,0 +1,35 @@
+services:
+    kb-tool:
+        image: isxam/secret-spot-kb-tool
+        tty: true
+        volumes:
+            - ./data:/app/input
+    mapnik-renderer:
+        image: isxam/secret-spot-wms-tiles-renderer:latest
+        tty: true
+        volumes:
+            - ./output/tiles/raster:/app/tiles
+    tippecanoe-renderer:
+        image: morlov/tippecanoe:latest
+        tty: true
+        volumes:
+            - ./output/tiles/vector:/app/tiles
+            - ./data:/app/input
+    db:
+        image: postgis/postgis:15-3.4
+        volumes:
+            - pgdata:/var/lib/postgresql/data
+        ports:
+            - '15432:5432'
+        environment:
+            POSTGRES_USER: postgres
+            POSTGRES_HOST_AUTH_METHOD: trust
+#    pgadmin:
+#        image: dpage/pgadmin4
+#        ports:
+#            - '18002:80'
+#        environment:
+#            PGADMIN_DEFAULT_EMAIL: max@email.com
+#            PGADMIN_DEFAULT_PASSWORD: password1
+volumes:
+    pgdata:

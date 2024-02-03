@@ -1,0 +1,90 @@
+name: build
+run-name: ${{ github.actor }} is deploying tiles
+on:
+  workflow_dispatch:
+    inputs:
+      kb-version:
+        description: KB version
+        default: 'dev-v0.1'
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout [secret-spot-deploy] current branch
+        uses: actions/checkout@v4
+        with:
+          path: builder
+      - name: Checkout [secret-spot-kb] version [${{ inputs.kb-version }}]
+        uses: actions/checkout@v4
+        with:
+          repository: ro-ro-by/secret-spot-kb
+          ref: ${{ inputs.kb-version }}
+          token: ${{ secrets.GIT_PAT }}
+          path: data/kb
+      - name: Run containers
+        run: |
+          cp builder/docker-compose.yaml docker-compose.yaml
+          docker compose up -d
+
+      #####
+      # Preparing data
+      #####
+      - name: Packing KB
+        run:  docker compose exec \
+          kb-tool bin/cli kb:repo:pack input/kb input/kb.yaml
+      - name: Export KB to [PostGIS]
+        run:  docker compose exec \
+          kb-tool php -dmemory_limit=-1 bin/cli renderer:db:create input/kb.yaml
+
+      #####
+      # Raster tiles deploying
+      #####
+      - name: Generating raster tiles via [Mapnik]
+        run: docker compose exec \
+          mapnik-renderer python render.py 1 11 /app/tiles/
+      - name: Cleaning up empty tiles
+        run: |
+          find output/tiles/raster/ -type f | wc -l
+          find output/tiles/raster/ -size 116c | wc -l
+          find output/tiles/raster/ -size 116c | sudo xargs rm
+      - name: Raster tiles count
+        run: find output/tiles/raster/ -type f | wc -l
+      - name: Deploy raster tiles to S3 bucket
+        uses: jakejarvis/s3-sync-action@master
+        env:
+          AWS_S3_BUCKET: 'by-secret-spot-wms-tiles'
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_S3_TILES_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_S3_TILES_SECRET_ACCESS_KEY }}
+          AWS_REGION: 'eu-north-1'
+          SOURCE_DIR: 'output/tiles/raster'
+          DEST_DIR: 'raster'
+
+      #####
+      # Vector tiles deploying
+      #####
+      - name: Building source GeoJSON from [PostGIS]
+        run: |
+          docker compose exec db psql postgres postgres -tq -c "SELECT json_build_object(
+              'type', 'FeatureCollection',
+              'features', json_agg(ST_AsGeoJSON(q.*)::json)
+              )
+          FROM (
+          select uid, type, title, ST_Transform(location, 4326) as g from points
+          ) as q;" > data/kb-items.geojson
+      - name: Building vector tiles via [tippecanoe]
+        run: |
+          docker compose exec tippecanoe-renderer \
+              tippecanoe -e /app/tiles -Z5 -z7 -pC -r1 -pk -pf /app/input/kb-items.geojson --force
+      - name: Vector tiles count
+        run: find output/tiles/vector/ -type f | wc -l
+      - name: Deploy vector tiles to S3 bucket
+        uses: jakejarvis/s3-sync-action@master
+        with:
+          args: --delete
+        env:
+          AWS_S3_BUCKET: 'by-secret-spot-wms-tiles'
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_S3_TILES_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_S3_TILES_SECRET_ACCESS_KEY }}
+          AWS_REGION: 'eu-north-1'
+          SOURCE_DIR: 'output/tiles/vector'
+          DEST_DIR: 'vector'
