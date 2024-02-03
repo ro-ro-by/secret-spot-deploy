@@ -14,6 +14,7 @@ on:
 jobs:
   main:
     runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
     steps:
       - name: Checkout [secret-spot-deploy] current branch
         uses: actions/checkout@v4
