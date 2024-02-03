@@ -3,9 +3,14 @@ run-name: ${{ github.actor }} is deploying tiles
 on:
   workflow_dispatch:
     inputs:
+      environment:
+        description: 'Environment'
+        type: environment
+        required: true
       kb-version:
-        description: KB version
+        description: 'KB version'
         default: 'dev-v0.1'
+        required: true
 jobs:
   main:
     runs-on: ubuntu-latest
