@@ -36,18 +36,15 @@ jobs:
       # Preparing data
       #####
       - name: Packing KB
-        run:  docker compose exec \
-          kb-tool bin/cli kb:repo:pack input/kb input/kb.yaml
+        run:  docker compose exec kb-tool bin/cli kb:repo:pack input/kb input/kb.yaml
       - name: Export KB to [PostGIS]
-        run:  docker compose exec \
-          kb-tool php -dmemory_limit=-1 bin/cli renderer:db:create input/kb.yaml
+        run:  docker compose exec kb-tool php -dmemory_limit=-1 bin/cli renderer:db:create input/kb.yaml
 
       #####
       # Raster tiles deploying
       #####
       - name: Generating raster tiles via [Mapnik]
-        run: docker compose exec \
-          mapnik-renderer python render.py 1 11 /app/tiles/
+        run: docker compose exec mapnik-renderer python render.py 1 11 /app/tiles/
       - name: Cleaning up empty tiles
         run: |
           find output/tiles/raster/ -type f | wc -l
@@ -79,8 +76,7 @@ jobs:
           ) as q;" > data/kb-items.geojson
       - name: Building vector tiles via [tippecanoe]
         run: |
-          docker compose exec tippecanoe-renderer \
-              tippecanoe -e /app/tiles -Z5 -z7 -pC -r1 -pk -pf /app/input/kb-items.geojson --force
+          docker compose exec tippecanoe-renderer tippecanoe -e /app/tiles -Z5 -z7 -pC -r1 -pk -pf /app/input/kb-items.geojson --force
       - name: Vector tiles count
         run: find output/tiles/vector/ -type f | wc -l
       - name: Deploy vector tiles to S3 bucket
