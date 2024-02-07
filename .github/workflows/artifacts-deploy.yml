@@ -38,6 +38,7 @@ jobs:
       - name: Pack KB
         run: |
           docker run -v ./data/kb:/app/kb -v ./data/output:/app/output isxam/secret-spot-kb-tool:latest php bin/cli kb:repo:pack kb output/kb.yaml
+          docker run -v ./data/kb:/app/kb -v ./data/output:/app/output isxam/secret-spot-kb-tool:latest php bin/cli kb:repo:pack kb output/kb-min.yaml -m
 
       #####
       # Artifacts deploying
