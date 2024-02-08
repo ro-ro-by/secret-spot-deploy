@@ -32,7 +32,6 @@ jobs:
           token: ${{ secrets.GIT_PAT }}
           path: data/kb
 
-
       #####
       # Pack YAML data
       #####
