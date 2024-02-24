@@ -72,7 +72,7 @@ jobs:
               'features', json_agg(ST_AsGeoJSON(q.*)::json)
               )
           FROM (
-          select uid, type, title, ST_Transform(location, 4326) as g from points
+          select uid, type, title, ST_Transform(location, 4326) as g from points where type NOT IN ('area')
           ) as q;" > data/kb-items.geojson
       - name: Building vector tiles via [tippecanoe]
         run: |
