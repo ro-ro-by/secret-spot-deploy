@@ -45,7 +45,7 @@ jobs:
           docker run -v ./data/kb:/app/kb -v ./data/output:/app/output isxam/secret-spot-kb-tool:latest php bin/cli kb:repo:pack kb output/kb.yaml
           docker run -v ./data/kb:/app/kb -v ./data/output:/app/output isxam/secret-spot-kb-tool:latest php bin/cli kb:repo:pack kb output/kb-min.yaml -m
           
-          docker run -v ./data/output:/app/output isxam/secret-spot-kb-tool:latest php bin/cli kb:export:geojson output/kb.yaml > ./data/output/kb.geojson
+          docker run -v ./data/output:/app/output isxam/secret-spot-kb-tool:latest php bin/cli kb:export:geojson output/kb.yaml
 
       #####
       # Make JSON version of data
