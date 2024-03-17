@@ -20,6 +20,9 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
       - name: Checkout [secret-spot-deploy] current branch
         uses: actions/checkout@v4
         with:
@@ -52,6 +55,29 @@ jobs:
           
           cat ./data/output/kb.yaml | yaml2json > ./data/output/kb.json
           cat ./data/output/kb-min.yaml | yaml2json > ./data/output/kb-min.json
+
+      #####
+      # Build GeoJSON
+      #####
+      - name: Build GeoJSON
+        run: |
+          docker run -v ./data/output:/app/output isxam/secret-spot-kb-tool:latest php bin/cli kb:export:geojson output/kb.yaml > output/kb.geojson
+
+      #####
+      # Build KML
+      #####
+      - name: Build KML
+        run: |
+          npm install -g tokml
+          tokml --name title_long --description description --documentName "SecretSpot" ./data/kb.geojson > ./data/kb.kml
+
+      #####
+      # Build GPX
+      #####
+      - name: Build GPX
+        run: |
+          sudo apt-get install -y gpsbabel
+          gpsbabel -i kml -f ./data/kb.kml -o gpx -F ./data/kb.gpx
 
       #####
       # Artifacts deploying
