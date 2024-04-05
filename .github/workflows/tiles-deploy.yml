@@ -9,7 +9,7 @@ on:
         required: true
       kb-version:
         description: 'KB version'
-        default: 'dev-v0.1'
+        default: 'master'
         required: true
 jobs:
   main:
@@ -61,7 +61,7 @@ jobs:
         run: find output/tiles/raster/ -type f | wc -l
       - name: Upload raster tiles to S3 bucket
         run: |
-          aws s3 sync --delete ./output/tiles/raster s3://by-secret-spot-wms-tiles/raster
+          aws s3 sync --delete ./output/tiles/raster s3://by-secret-spot-wms-tiles/${{ inputs.kb-version }}/raster/base
 
       #####
       # Vector tiles deploying
@@ -82,4 +82,4 @@ jobs:
         run: find output/tiles/vector/ -type f | wc -l
       - name: Upload vector tiles to S3 bucket
         run: |
-          aws s3 sync --delete ./output/tiles/vector s3://by-secret-spot-wms-tiles/vector
+          aws s3 sync --delete ./output/tiles/vector s3://by-secret-spot-wms-tiles/${{ inputs.kb-version }}/vector/base
