@@ -77,7 +77,7 @@ jobs:
           ) as q;" > data/kb-items.geojson
       - name: Building vector tiles via [tippecanoe]
         run: |
-          docker compose exec tippecanoe-renderer tippecanoe -e /app/tiles -Z5 -z9 -pC -r1 -pk -pf /app/input/kb-items.geojson --force
+          docker compose exec tippecanoe-renderer tippecanoe -e /app/tiles -Z5 -z11 -pC -r1 -pk -pf /app/input/kb-items.geojson --force
       - name: Vector tiles count
         run: find output/tiles/vector/ -type f | wc -l
       - name: Upload vector tiles to S3 bucket
